@@ -2,7 +2,7 @@ import type { Images, Tag, User } from "@/common/types/types.ts"
 import type { CurrentUserReaction } from "@/common/enums/enums.ts"
 
 export type PlaylistsResponse = {
-  data: PlaylistData
+  data: PlaylistData[]
   meta: PlaylistMeta
 }
 
