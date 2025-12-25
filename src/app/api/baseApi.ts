@@ -13,8 +13,7 @@ export const baseApi = createApi({
     },
   }),
   tagTypes: ['Playlist'],
-  keepUnusedDataFor: 5,
-  refetchOnFocus: true,
+  keepUnusedDataFor: 120,
   refetchOnReconnect: true,
   endpoints: () => ({}),
 })
