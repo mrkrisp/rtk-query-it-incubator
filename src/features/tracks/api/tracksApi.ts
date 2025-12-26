@@ -3,16 +3,16 @@ import type { FetchTracksResponse } from '@/features/tracks/api/tracksApi.types.
 
 export const tracksApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    fetchTracks: build.infiniteQuery<FetchTracksResponse, void, string | undefined>({
+    fetchTracks: build.infiniteQuery<FetchTracksResponse, void, number>({
       infiniteQueryOptions: {
-        initialPageParam: undefined,
-        getNextPageParam: (lastPage) => {
-          return lastPage.meta.nextCursor || undefined
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+          return lastPageParam < (lastPage.meta as { pagesCount: number }).pagesCount ? lastPageParam + 1 : undefined
         },
       },
       query: ({ pageParam }) => ({
         url: `playlists/tracks`,
-        params: { cursor: pageParam, paginationType: 'cursor', pageSize: 5 },
+        params: { pageNumber: pageParam, paginationType: 'offset', pageSize: 10 },
       }),
     }),
   }),

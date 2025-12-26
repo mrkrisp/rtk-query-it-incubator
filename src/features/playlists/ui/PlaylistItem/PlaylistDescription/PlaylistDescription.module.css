@@ -1,0 +1,4 @@
+.overflow-fix {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
