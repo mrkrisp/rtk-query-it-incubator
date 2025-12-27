@@ -20,6 +20,21 @@ export const PlaylistsPage = () => {
     pageSize,
   })
 
+  // useEffect(() => {
+  //   if (!error) return
+  //   if ('status' in error) {
+  //     const errorMsg =
+  //       'error' in error
+  //         ? error.error
+  //         : (error.data as { error: string }).error ||
+  //           (error.data as { message: string }).message ||
+  //           'Some error occurred'
+  //     toast(errorMsg, { type: 'error', theme: 'colored' })
+  //   } else {
+  //     toast(error.message || 'Some error occurred', { type: 'error', theme: 'colored' })
+  //   }
+  // }, [error])
+
   const changePageSizeHandler = (size: number) => {
     setPageSize(size)
     setCurrentPage(1)
@@ -36,7 +51,7 @@ export const PlaylistsPage = () => {
       <h1>Playlists page</h1>
       <CreatePlaylistForm setCurrentPage={setCurrentPage} />
       <input type="search" placeholder={'Search playlist by title'} onChange={searchPlaylistHandler} />
-      <PlaylistList playlists={data?.data || []} isPlaylistsLoading={isLoading} /> :
+      <PlaylistList playlists={data?.data || []} isPlaylistsLoading={isLoading} />
       <Pagination
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
