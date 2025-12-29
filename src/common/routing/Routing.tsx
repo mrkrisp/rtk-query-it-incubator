@@ -1,17 +1,19 @@
-import { Route, Routes } from "react-router";
-import { MainPage } from "@/app/ui/MainPage/MainPage.tsx";
-import { TracksPage } from "@/features/tracks/ui/TracksPage.tsx";
-import { PlaylistsPage } from "@/features/playlists/ui/PlaylistsPage.tsx";
-import { ProfilePage } from "@/features/auth/ui/ProfilePage/ProfilePage.tsx";
-import { PageNotFound } from "@/common/components/PageNotFound/PageNotFound.tsx";
+import { Route, Routes } from 'react-router'
+import { MainPage } from '@/app/ui/MainPage/MainPage.tsx'
+import { TracksPage } from '@/features/tracks/ui/TracksPage.tsx'
+import { PlaylistsPage } from '@/features/playlists/ui/PlaylistsPage.tsx'
+import { ProfilePage } from '@/features/auth/ui/ProfilePage/ProfilePage.tsx'
+import { PageNotFound } from '@/common/components/PageNotFound/PageNotFound.tsx'
+import OAuthCallback from '@/features/auth/ui/OAuthCallback/OAuthCallback.tsx'
 
 export const Path = {
-  Main: "/",
-  Tracks: "/tracks",
-  Playlists: "/playlists",
-  Profile: "/profile",
-  NotFound: "*",
-} as const;
+  Main: '/',
+  Tracks: '/tracks',
+  Playlists: '/playlists',
+  Profile: '/profile',
+  OAuthRedirect: '/oauth/callback',
+  NotFound: '*',
+} as const
 
 export const Routing = () => {
   return (
@@ -20,7 +22,8 @@ export const Routing = () => {
       <Route path={Path.Tracks} element={<TracksPage />} />
       <Route path={Path.Playlists} element={<PlaylistsPage />} />
       <Route path={Path.Profile} element={<ProfilePage />} />
+      <Route path={Path.OAuthRedirect} element={<OAuthCallback />} />
       <Route path={Path.NotFound} element={<PageNotFound />} />
     </Routes>
-  );
-};
+  )
+}

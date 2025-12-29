@@ -22,7 +22,6 @@ export function handleErrors(error: FetchBaseQueryError) {
 
       break
 
-    case 401:
     case 429:
       // ✅ 1. Type Assertions
       // toast((.error.data as { message: string }).message)
@@ -39,6 +38,8 @@ export function handleErrors(error: FetchBaseQueryError) {
     case 400:
     case 403:
       if (isErrorWithDetailArray(error.data)) {
+        const errorMessage = error.data.errors[0].detail
+        if (errorMessage.includes('refreshToken')) return
         errorToast(trimToMaxLength(error.data.errors[0].detail))
       } else {
         errorToast(JSON.stringify(error.data))
