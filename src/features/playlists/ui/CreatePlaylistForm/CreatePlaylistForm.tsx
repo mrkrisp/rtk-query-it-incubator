@@ -1,12 +1,21 @@
 import { type SubmitHandler, useForm } from 'react-hook-form'
-import type { CreatePlaylistsArgs } from '@/features/playlists/api/playlistsApi.types.ts'
 import { useCreatePlaylistMutation } from '@/features/playlists/api/playlistsApi.ts'
+import s from './CreatePlaylistForm.module.css'
+import type { CreatePlaylistArgs } from '@/features/playlists/api/playlistsApi.types.ts'
+import { createPlaylistSchema } from '@/features/playlists/model/playlists.schemas.ts'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 const CreatePlaylistForm = () => {
-  const { register, handleSubmit, reset } = useForm<CreatePlaylistsArgs>()
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CreatePlaylistArgs>({ resolver: zodResolver(createPlaylistSchema) })
+
   const [createPlaylist] = useCreatePlaylistMutation()
 
-  const onSubmit: SubmitHandler<CreatePlaylistsArgs> = (data) => {
+  const onSubmit: SubmitHandler<CreatePlaylistArgs> = (data) => {
     createPlaylist(data)
       .unwrap()
       .then(() => reset())
@@ -17,9 +26,11 @@ const CreatePlaylistForm = () => {
       <h2>Create new playlist</h2>
       <div>
         <input {...register('title')} placeholder="title" />
+        {errors.title && <span className={s.error}>{errors.title.message}</span>}
       </div>
       <div>
         <input {...register('description')} placeholder="description" />
+        {errors.description && <span className={s.error}>{errors.description.message}</span>}
       </div>
       <button>create playlist</button>
     </form>

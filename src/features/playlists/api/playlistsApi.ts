@@ -1,5 +1,5 @@
 import type {
-  CreatePlaylistsArgs,
+  CreatePlaylistArgs,
   FetchPlaylistsArgs,
   PlaylistData,
   PlaylistsResponse,
@@ -7,21 +7,28 @@ import type {
 } from '@/features/playlists/api/playlistsApi.types.ts'
 import { baseApi } from '@/app/api/baseApi.ts'
 import type { Images } from '@/common/types/types.ts'
+import { playlistCreateResponseSchema, playlistsResponseSchema } from '@/features/playlists/model/playlists.schemas.ts'
+import { imagesSchema } from '@/common/schemas/schemas.ts'
+import { withZodCatch } from '@/common/utils/withZodCatch.ts'
 
 export const playlistsApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     fetchPlaylists: build.query<PlaylistsResponse, FetchPlaylistsArgs>({
       query: (params) => ({ url: 'playlists', params }),
+      ...withZodCatch(playlistsResponseSchema),
       providesTags: ['Playlist'],
     }),
-    createPlaylist: build.mutation<{ data: PlaylistData }, CreatePlaylistsArgs>({
+
+    createPlaylist: build.mutation<{ data: PlaylistData }, CreatePlaylistArgs>({
       query: (body) => ({
         url: 'playlists',
         method: 'post',
         body,
       }),
+      ...withZodCatch(playlistCreateResponseSchema),
       invalidatesTags: ['Playlist'],
     }),
+
     deletePlaylist: build.mutation<void, string>({
       query: (playlistId) => ({
         url: `playlists/${playlistId}`,
@@ -29,6 +36,7 @@ export const playlistsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Playlist'],
     }),
+
     updatePlaylist: build.mutation<void, { playlistId: string; body: UpdatePlaylistArgs }>({
       query: ({ playlistId, body }) => ({
         url: `playlists/${playlistId}`,
@@ -67,6 +75,7 @@ export const playlistsApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ['Playlist'],
     }),
+
     uploadPlaylistCover: build.mutation<Images, { playlistId: string; file: File }>({
       query: ({ playlistId, file }) => {
         const formData = new FormData()
@@ -77,6 +86,7 @@ export const playlistsApi = baseApi.injectEndpoints({
           body: formData,
         }
       },
+      ...withZodCatch(imagesSchema),
       invalidatesTags: ['Playlist'],
     }),
     deletePlaylistCover: build.mutation<void, { playlistId: string }>({

@@ -8,4 +8,5 @@ export const baseApi = createApi({
   refetchOnReconnect: true,
   endpoints: () => ({}),
   baseQuery: baseQueryWithReauth,
+  // skipSchemaValidation: process.env.NODE_ENV === 'production',
 })
