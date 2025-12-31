@@ -1,26 +1,55 @@
 import type {
   CreatePlaylistArgs,
   FetchPlaylistsArgs,
-  PlaylistData,
-  PlaylistsResponse,
+  PlaylistCreatedEvent,
+  PlaylistUpdatedEvent,
   UpdatePlaylistArgs,
 } from '@/features/playlists/api/playlistsApi.types.ts'
 import { baseApi } from '@/app/api/baseApi.ts'
-import type { Images } from '@/common/types/types.ts'
 import { playlistCreateResponseSchema, playlistsResponseSchema } from '@/features/playlists/model/playlists.schemas.ts'
 import { imagesSchema } from '@/common/schemas/schemas.ts'
 import { withZodCatch } from '@/common/utils/withZodCatch.ts'
+import { subscribeToEvent } from '@/common/socket'
+import { SOCKET_EVENTS } from '@/common/constants'
 
 export const playlistsApi = baseApi.injectEndpoints({
-  endpoints: (build) => ({
-    fetchPlaylists: build.query<PlaylistsResponse, FetchPlaylistsArgs>({
-      query: (params) => ({ url: 'playlists', params }),
+  endpoints: build => ({
+    fetchPlaylists: build.query({
+      query: (params: FetchPlaylistsArgs) => ({ url: 'playlists', params }),
       ...withZodCatch(playlistsResponseSchema),
+      keepUnusedDataFor: 0,
+      onCacheEntryAdded: async (_arg, { cacheDataLoaded, updateCachedData, cacheEntryRemoved }) => {
+        await cacheDataLoaded
+
+        const unsubscribes = [
+          subscribeToEvent<PlaylistCreatedEvent>(SOCKET_EVENTS.PLAYLIST_CREATED, msg => {
+            const newPlaylist = msg.payload.data
+            updateCachedData(state => {
+              state.data.pop()
+              state.data.unshift(newPlaylist)
+              state.meta.totalCount = state.meta.totalCount + 1
+              state.meta.pagesCount = Math.ceil(state.meta.totalCount / state.meta.pageSize)
+            })
+          }),
+          subscribeToEvent<PlaylistUpdatedEvent>(SOCKET_EVENTS.PLAYLIST_UPDATED, msg => {
+            const newPlaylist = msg.payload.data
+            updateCachedData(state => {
+              const index = state.data.findIndex(playlist => playlist.id === newPlaylist.id)
+              if (index !== -1) {
+                state.data[index] = { ...state.data[index], ...newPlaylist }
+              }
+            })
+          }),
+        ]
+
+        await cacheEntryRemoved
+        unsubscribes.forEach(unsubscribe => unsubscribe())
+      },
       providesTags: ['Playlist'],
     }),
 
-    createPlaylist: build.mutation<{ data: PlaylistData }, CreatePlaylistArgs>({
-      query: (body) => ({
+    createPlaylist: build.mutation({
+      query: (body: CreatePlaylistArgs) => ({
         url: 'playlists',
         method: 'post',
         body,
@@ -30,7 +59,7 @@ export const playlistsApi = baseApi.injectEndpoints({
     }),
 
     deletePlaylist: build.mutation<void, string>({
-      query: (playlistId) => ({
+      query: playlistId => ({
         url: `playlists/${playlistId}`,
         method: 'delete',
       }),
@@ -48,14 +77,14 @@ export const playlistsApi = baseApi.injectEndpoints({
 
         const patchResults: any[] = []
 
-        args.forEach((arg) => {
+        args.forEach(arg => {
           patchResults.push(
             dispatch(
               playlistsApi.util.updateQueryData(
                 'fetchPlaylists',
                 { pageNumber: arg.pageNumber, pageSize: arg.pageSize, search: arg.search },
-                (state) => {
-                  const index = state.data.findIndex((playlist) => playlist.id === playlistId)
+                state => {
+                  const index = state.data.findIndex(playlist => playlist.id === playlistId)
                   if (index !== -1) {
                     state.data[index].attributes = { ...state.data[index].attributes, ...body }
                   }
@@ -68,7 +97,7 @@ export const playlistsApi = baseApi.injectEndpoints({
         try {
           await queryFulfilled
         } catch {
-          patchResults.forEach((patchResult) => {
+          patchResults.forEach(patchResult => {
             patchResult.undo()
           })
         }
@@ -76,8 +105,8 @@ export const playlistsApi = baseApi.injectEndpoints({
       invalidatesTags: ['Playlist'],
     }),
 
-    uploadPlaylistCover: build.mutation<Images, { playlistId: string; file: File }>({
-      query: ({ playlistId, file }) => {
+    uploadPlaylistCover: build.mutation({
+      query: ({ playlistId, file }: { playlistId: string; file: File }) => {
         const formData = new FormData()
         formData.append('file', file)
         return {
